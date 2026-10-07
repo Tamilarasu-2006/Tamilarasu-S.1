@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Real-time Team Availability Tracker dashboard for modern distributed engineering and product teams." />
+    <title>SyncPulse — Real-Time Team Availability Tracker</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Phosphor Icons for crisp modern iconography -->
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- Background glowing ambient lights -->
+    <div class="ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+    <div class="app-container">
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="nav-left">
+          <div class="brand-badge">
+            <div class="brand-icon">
+              <span class="pulse-dot"></span>
+              <i class="ph-fill ph-users-four"></i>
+            </div>
+            <div class="brand-titles">
+              <span class="brand-name">SyncPulse</span>
+              <span class="brand-tag">Team Availability</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-center">
+          <div class="live-clock" title="Current Local Time">
+            <i class="ph ph-clock"></i>
+            <span id="live-time">--:--:--</span>
+            <span class="clock-tz" id="live-timezone">Local</span>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <button id="btn-activity-log" class="btn-ghost icon-btn" title="View Recent Activity Feed" aria-label="Activity Feed">
+            <i class="ph ph-clock-counter-clockwise"></i>
+            <span class="btn-label">Activity</span>
+            <span id="activity-badge" class="badge-dot"></span>
+          </button>
+          
+          <button id="btn-sound-toggle" class="btn-ghost icon-btn" title="Toggle Sound Feedback" aria-label="Sound Toggle">
+            <i class="ph ph-speaker-high" id="sound-icon"></i>
+          </button>
+
+          <button id="btn-theme-toggle" class="btn-ghost icon-btn" title="Toggle Dark/Light Theme" aria-label="Theme Toggle">
+            <i class="ph ph-sun" id="theme-icon"></i>
+          </button>
+
+          <button id="btn-add-member" class="btn-primary" aria-label="Add new team member">
+            <i class="ph-bold ph-plus"></i>
+            <span>Add Member</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Dashboard Content -->
+      <main class="dashboard-main">
+        <!-- Hero Header & Metric Stats -->
+        <section class="hero-section">
+          <div class="hero-text">
+            <div class="status-pill-header">
+              <span class="status-indicator-ping"></span>
+              <span>LIVE WORKFORCE STATUS</span>
+            </div>
+            <h1>Who's Available Right Now</h1>
+            <p class="hero-sub">Monitor distributed team availability, deep-work focus states, and timezones in real time.</p>
+          </div>
+
+          <!-- Quick Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card available-card">
+              <div class="stat-icon-wrapper">
+                <i class="ph-fill ph-check-circle"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-available">0</span>
+                <span class="stat-label">Available Now</span>
+              </div>
+              <div class="stat-progress-bg">
+                <div class="stat-progress-bar" id="stat-progress-available" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="stat-card away-card">
+              <div class="stat-icon-wrapper">
+                <i class="ph-fill ph-moon"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-away">0</span>
+                <span class="stat-label">Away / In Focus</span>
+              </div>
+              <div class="stat-badge-sub" id="stat-rate">0% Active</div>
+            </div>
+
+            <div class="stat-card total-card">
+              <div class="stat-icon-wrapper">
+                <i class="ph-fill ph-users"></i>
+              </div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-total">0</span>
+                <span class="stat-label">Total Team Members</span>
+              </div>
+              <div class="stat-subtext" id="stat-dept-count">0 Departments</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Controls, Filter & Search Bar -->
+        <section class="controls-section">
+          <div class="search-box-wrapper">
+            <i class="ph ph-magnifying-glass search-icon"></i>
+            <input 
+              type="search" 
+              id="search-input" 
+              placeholder="Search by name, role, email, status (Press '/' to focus)..." 
+              autocomplete="off"
+            />
+            <kbd class="search-kbd">/</kbd>
+            <button id="clear-search" class="clear-search-btn" title="Clear search" style="display: none;">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+
+          <div class="filter-controls-row">
+            <!-- Availability status filter tabs -->
+            <div class="segmented-tabs" role="tablist" aria-label="Filter by availability">
+              <button class="tab-btn active" data-filter-status="all" role="tab" aria-selected="true">
+                <span>All</span>
+                <span class="tab-count" id="count-all">0</span>
+              </button>
+              <button class="tab-btn" data-filter-status="available" role="tab" aria-selected="false">
+                <span class="tab-dot online"></span>
+                <span>Available</span>
+                <span class="tab-count" id="count-available">0</span>
+              </button>
+              <button class="tab-btn" data-filter-status="away" role="tab" aria-selected="false">
+                <span class="tab-dot offline"></span>
+                <span>Away</span>
+                <span class="tab-count" id="count-away">0</span>
+              </button>
+            </div>
+
+            <!-- Department selector dropdown / pills -->
+            <div class="filter-select-wrapper">
+              <i class="ph ph-buildings select-icon"></i>
+              <select id="department-filter" aria-label="Filter by department">
+                <option value="all">All Departments</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Design">Design</option>
+                <option value="Product">Product</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Marketing">Marketing</option>
+                <option value="AI & Data">AI & Data</option>
+                <option value="Quality">Quality</option>
+              </select>
+            </div>
+
+            <!-- Quick Action menu & View Toggle -->
+            <div class="action-tools">
+              <div class="view-toggle-btns" role="group" aria-label="View Layout">
+                <button id="btn-view-grid" class="view-btn active" title="Grid View">
+                  <i class="ph-bold ph-squares-four"></i>
+                </button>
+                <button id="btn-view-list" class="view-btn" title="List View">
+                  <i class="ph-bold ph-list-dashes"></i>
+                </button>
+              </div>
+
+              <div class="bulk-dropdown-container">
+                <button id="btn-bulk-menu" class="btn-secondary" title="Quick Actions">
+                  <i class="ph-bold ph-lightning"></i>
+                  <span>Actions</span>
+                  <i class="ph ph-caret-down"></i>
+                </button>
+                <div id="bulk-dropdown" class="dropdown-menu">
+                  <button id="btn-all-available" class="dropdown-item">
+                    <i class="ph-fill ph-check-circle" style="color: var(--color-online);"></i>
+                    <span>Set All Available</span>
+                  </button>
+                  <button id="btn-all-away" class="dropdown-item">
+                    <i class="ph-fill ph-moon" style="color: var(--color-offline);"></i>
+                    <span>Set All Away</span>
+                  </button>
+                  <div class="dropdown-divider"></div>
+                  <button id="btn-export-csv" class="dropdown-item">
+                    <i class="ph ph-file-csv"></i>
+                    <span>Export as CSV</span>
+                  </button>
+                  <button id="btn-export-json" class="dropdown-item">
+                    <i class="ph ph-code"></i>
+                    <span>Export as JSON</span>
+                  </button>
+                  <div class="dropdown-divider"></div>
+                  <button id="btn-reset-demo" class="dropdown-item text-danger">
+                    <i class="ph ph-arrow-counter-clockwise"></i>
+                    <span>Reset Sample Data</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Active Filters Indicator Bar -->
+        <div id="filter-status-bar" class="filter-status-bar" style="display: none;">
+          <span id="filter-summary-text">Showing filtered results</span>
+          <button id="btn-clear-all-filters" class="btn-link">Reset all filters</button>
+        </div>
+
+        <!-- Team Members List / Grid Container -->
+        <section class="team-panel">
+          <div id="users-container" class="users-grid" aria-live="polite">
+            <!-- Dynamic user cards rendered here -->
+          </div>
+
+          <!-- Empty search/filter state -->
+          <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon-circle">
+              <i class="ph ph-user-circle-gear"></i>
+            </div>
+            <h3>No team members found</h3>
+            <p>Try adjusting your search query, department, or status filters.</p>
+            <button id="btn-empty-reset" class="btn-secondary">Clear Filters</button>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-content">
+          <span>SyncPulse &bull; Pure Client-Side Team Availability Web Page</span>
+          <span class="footer-meta">Instant Local Storage &bull; Zero Backend Required</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ADD / EDIT MEMBER MODAL -->
+    <div id="member-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="modal-title">Add Team Member</h2>
+            <p class="modal-subtitle">Configure member profile, department, and initial status.</p>
+          </div>
+          <button id="btn-close-modal" class="btn-close" aria-label="Close modal">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+
+        <form id="member-form" class="modal-body">
+          <input type="hidden" id="member-id" value="" />
+          
+          <div class="avatar-picker-section">
+            <div class="avatar-preview" id="modal-avatar-preview" style="background: #6366f1;">
+              <span id="modal-avatar-initials">TM</span>
+            </div>
+            <div class="avatar-colors-picker">
+              <label>Select Accent Color</label>
+              <div class="color-palette" id="color-palette">
+                <button type="button" class="color-swatch active" data-color="#6366f1" style="background: #6366f1;"></button>
+                <button type="button" class="color-swatch" data-color="#ec4899" style="background: #ec4899;"></button>
+                <button type="button" class="color-swatch" data-color="#10b981" style="background: #10b981;"></button>
+                <button type="button" class="color-swatch" data-color="#f59e0b" style="background: #f59e0b;"></button>
+                <button type="button" class="color-swatch" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                <button type="button" class="color-swatch" data-color="#06b6d4" style="background: #06b6d4;"></button>
+                <button type="button" class="color-swatch" data-color="#f43f5e" style="background: #f43f5e;"></button>
+                <button type="button" class="color-swatch" data-color="#3b82f6" style="background: #3b82f6;"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-name">Full Name <span class="required">*</span></label>
+              <input type="text" id="input-name" required placeholder="e.g. Maya Lin" />
+            </div>
+            <div class="form-group">
+              <label for="input-email">Work Email <span class="required">*</span></label>
+              <input type="email" id="input-email" required placeholder="e.g. maya@acme.corp" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-role">Role / Title</label>
+              <input type="text" id="input-role" placeholder="e.g. Staff Frontend Engineer" />
+            </div>
+            <div class="form-group">
+              <label for="input-department">Department</label>
+              <select id="input-department">
+                <option value="Engineering">Engineering</option>
+                <option value="Design">Design</option>
+                <option value="Product">Product</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Marketing">Marketing</option>
+                <option value="AI & Data">AI & Data</option>
+                <option value="Quality">Quality</option>
+                <option value="Operations">Operations</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-timezone">Timezone / Location</label>
+              <select id="input-timezone">
+                <option value="IST (UTC+5:30)">IST — India (UTC+5:30)</option>
+                <option value="PST (UTC-8:00)">PST — Pacific US (UTC-8:00)</option>
+                <option value="EST (UTC-5:00)">EST — Eastern US (UTC-5:00)</option>
+                <option value="GMT (UTC+0:00)">GMT / UTC — London (UTC+0:00)</option>
+                <option value="CET (UTC+1:00)">CET — Central Europe (UTC+1:00)</option>
+                <option value="SGT (UTC+8:00)">SGT — Singapore (UTC+8:00)</option>
+                <option value="KST (UTC+9:00)">KST — Seoul / Tokyo (UTC+9:00)</option>
+                <option value="AEST (UTC+10:00)">AEST — Sydney (UTC+10:00)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="input-status-msg">Status Note / Activity</label>
+              <input type="text" id="input-status-msg" placeholder="e.g. Sprint planning 🚀" />
+            </div>
+          </div>
+
+          <div class="form-group form-checkbox-group">
+            <label class="checkbox-container">
+              <input type="checkbox" id="input-is-available" checked />
+              <span class="custom-checkbox"></span>
+              <span class="checkbox-label-text">Set initially as <strong>Available</strong></span>
+            </label>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btn-cancel-modal" class="btn-ghost">Cancel</button>
+            <button type="submit" id="btn-save-member" class="btn-primary">
+              <i class="ph-bold ph-check"></i>
+              <span id="btn-save-text">Save Member</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- QUICK STATUS NOTE POPUP MODAL -->
+    <div id="status-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-card modal-compact">
+        <div class="modal-header">
+          <div>
+            <h2>Update Status Note</h2>
+            <p id="status-modal-subtitle" class="modal-subtitle">Share what you're working on</p>
+          </div>
+          <button id="btn-close-status-modal" class="btn-close">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <form id="status-form" class="modal-body">
+          <input type="hidden" id="status-user-id" />
+          
+          <div class="status-presets">
+            <label>Quick Presets</label>
+            <div class="preset-chips">
+              <button type="button" class="chip-btn" data-preset="Deep focus mode 💻">💻 Focus Mode</button>
+              <button type="button" class="chip-btn" data-preset="In client meetings 📞">📞 In Meeting</button>
+              <button type="button" class="chip-btn" data-preset="Reviewing Pull Requests 🚀">🚀 Reviewing PRs</button>
+              <button type="button" class="chip-btn" data-preset="Lunch break ☕">☕ Lunch Break</button>
+              <button type="button" class="chip-btn" data-preset="Out of office today 🌴">🌴 Out of Office</button>
+              <button type="button" class="chip-btn" data-preset="Open for quick huddles 🟢">🟢 Open for Huddles</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-custom-status">Custom Message</label>
+            <input type="text" id="input-custom-status" placeholder="What are you working on?" maxlength="70" />
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btn-clear-status" class="btn-ghost text-danger">Clear Status</button>
+            <button type="submit" class="btn-primary">Update Status</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ACTIVITY LOG DRAWER -->
+    <div id="activity-drawer" class="drawer-overlay" aria-hidden="true">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <i class="ph-bold ph-clock-counter-clockwise"></i>
+            <h2>Live Activity Feed</h2>
+          </div>
+          <button id="btn-close-drawer" class="btn-close" aria-label="Close activity feed">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="drawer-body">
+          <div id="activity-list" class="activity-timeline">
+            <!-- Dynamically populated activity items -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
